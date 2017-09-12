@@ -1,5 +1,6 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
+var Table = require('cli-table2');
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -18,10 +19,14 @@ connection.connect(function(err) {
 function displayAllProducts() {
   connection.query("SELECT * FROM products WHERE stock_quantity > 0", function(err, res) {
     if (err) throw err;
-    console.log("\nItem # |                 Product Name                  | Price   ");
+    var table = new Table({
+      head: ['Item #', 'Product Name', 'Price'],
+      colWidths: [8, 45, 12]
+    });
     for (i = 0; i < res.length; i++) {
-      console.log(String(res[i].item_id) + "  " + " | " + (String(res[i].product_name) + "                                             ").slice(0, 45) + " | " + ("$" + String(res[i].price.toFixed(2))).slice(0, 8));
+      table.push([res[i].item_id, res[i].product_name, '$' + parseFloat(res[i].price).toFixed(2)]);
     }
+    console.log(table.toString());
     whatToBuy();
   });
 }
@@ -120,46 +125,51 @@ function displayOrder(item, quantity) {
   console.log("Item # |                 Product Name                  | Price    | Quantity | Total Cost");
   connection.query("SELECT * FROM products WHERE ?", { item_id: item }, function(err, res) {
     if (err) throw err;
-    console.log(String(item) + "  " + " | " + (String(res[0].product_name) + "                                             ").slice(0, 45) + " | " + ("$" + String(res[0].price.toFixed(2)) + "        ").slice(0, 8) + " | " + (String(quantity) + "        ").slice(0, 8) + " | " + ("$" + String((res[0].price * quantity).toFixed(2)) + "          ").slice(0, 10));
-    orderReview(item, quantity)
+    var table = new Table({
+      head: ['Item #', 'Product Name', 'Price', 'Quantity', 'Total Cost'],
+      colWidths: [8, 45, 12, 10, 12]
+    });
+    table.push([item, res[0].product_name, '$' + parseFloat(res[0].price).toFixed(2), quantity, '$' + parseFloat(res[0].price * quantity).toFixed(2)]);
+    console.log(table.toString());
+    orderReview(item, quantity, parseFloat(res[0].price * quantity).toFixed(2))
   });
 }
 
-function orderReview(item, quantity) {
+function orderReview(item, quantity, totalCost) {
   inquirer.prompt([{
     type: 'confirm',
     message: 'Is this order correct?\n',
     name: 'doOrderConfirm'
   }]).then(function(inquirerResponse) {
     if (inquirerResponse.doOrderConfirm) {
-      console.log('Your purchase has been confirmed. Thank you for shopping Bamazon. BAM!');
-      computeUpdatedQuantity(item, quantity);
+      console.log('\nYour purchase has been confirmed. Thank you for shopping Bamazon. BAM!\n');
+      computeUpdatedQuantity(item, quantity, totalCost);
     } else {
       cancelOrder(item, quantity, 'orderReview');
     }
   });
 }
 
-function computeUpdatedQuantity(item, quantity) {
+function computeUpdatedQuantity(item, quantity, totalCost) {
   connection.query("SELECT stock_quantity FROM products WHERE ?", { item_id: item }, function(err, res) {
     if (err) throw err;
     newQuantity = res[0].stock_quantity - quantity;
-    updateProductStockQuantity(item, newQuantity)
+    updateProductStockQuantity(item, newQuantity, totalCost)
   });
 }
 
-function updateProductStockQuantity(item, quantity) {
-  connection.query("UPDATE products SET ? WHERE ?", [
+function updateProductStockQuantity(item, quantity, totalCost) {
+  connection.query("UPDATE products SET ?,? WHERE ?", [
     { stock_quantity: quantity },
+    { product_sales: totalCost },
     { item_id: item }
   ], function(err, res) {
     if (err) throw err;
-    console.log(res);
   });
   displayAllProducts();
 }
 
 function endPoint() {
   connection.destroy();
-  console.log('Thank you for shopping Bamazon. BAM!');
+  console.log('\nThank you for shopping Bamazon. BAM!\n');
 }

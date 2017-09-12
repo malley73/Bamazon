@@ -1,5 +1,6 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
+var Table = require('cli-table2');
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -46,10 +47,14 @@ function menu() {
 function displayAllProducts() {
   connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
-    console.log("\nItem # |                 Product Name                  |   Department    |  Price   | Stock");
+    var table = new Table({
+      head: ['Item #', 'Product Name', 'Department', 'Price', 'Stock'],
+      colWidths: [8, 45, 16, 12, 8]
+    });
     for (i = 0; i < res.length; i++) {
-      console.log(String(res[i].item_id) + "  " + " | " + (String(res[i].product_name) + "                                             ").slice(0, 45) + " | " + (String(res[i].department_name) + "               ").slice(0, 15) + " | " + ("$" + String(res[i].price.toFixed(2)) + "        ").slice(0, 8) + " | " + String(res[i].stock_quantity));
+      table.push([res[i].item_id, res[i].product_name, res[i].department_name, '$' + parseFloat(res[i].price).toFixed(2), res[i].stock_quantity]);
     }
+    console.log(table.toString());
     console.log("");
     menu();
   });
@@ -59,10 +64,14 @@ function displayAllProducts() {
 function displayLowInventoryItems() {
   connection.query("SELECT * FROM products WHERE stock_quantity<5", function(err, res) {
     if (err) throw err;
-    console.log("\nItem # |                 Product Name                  |   Department    |  Price   | Stock");
+    var table = new Table({
+      head: ['Item #', 'Product Name', 'Department', 'Price', 'Stock'],
+      colWidths: [8, 45, 16, 12, 8]
+    });
     for (i = 0; i < res.length; i++) {
-      console.log(String(res[i].item_id) + "  " + " | " + (String(res[i].product_name) + "                                             ").slice(0, 45) + " | " + (String(res[i].department_name) + "               ").slice(0, 15) + " | " + ("$" + String(res[i].price.toFixed(2)) + "        ").slice(0, 8) + " | " + String(res[i].stock_quantity));
+      table.push([res[i].item_id, res[i].product_name, res[i].department_name, '$' + parseFloat(res[i].price).toFixed(2), res[i].stock_quantity]);
     }
+    console.log(table.toString());
     console.log("");
     menu();
   });
@@ -94,11 +103,19 @@ function displayUpdate(item, quantity) {
     if (err) throw err;
     console.log('UPDATE REVIEW\n');
     console.log('Current Inventory');
-    console.log("Item # |                 Product Name                  | Quantity");
-    console.log(String(item) + "  " + " | " + (String(res[0].product_name) + "                                             ").slice(0, 45) + " | " + (String(res[0].stock_quantity) + "    ").slice(0, 4));
+    var table = new Table({
+      head: ['Item #', 'Product Name', 'Quantity'],
+      colWidths: [8, 45, 8]
+    });
+    table.push([item, res[0].product_name, res[0].stock_quantity]);
+    console.log(table.toString());
     console.log('\nProposed Inventory Update');
-    console.log("Item # |                 Product Name                  | Quantity");
-    console.log(String(item) + "  " + " | " + (String(res[0].product_name) + "                                             ").slice(0, 45) + " | " + (String(parseInt(res[0].stock_quantity) + parseInt(quantity)) + "    ").slice(0, 4));
+    var table2 = new Table({
+      head: ['Item #', 'Product Name', 'Quantity'],
+      colWidths: [8, 45, 8]
+    });
+    table2.push([item, res[0].product_name, parseInt(res[0].stock_quantity) + parseInt(quantity)]);
+    console.log(table2.toString());
     updateConfirmation(item, parseInt(res[0].stock_quantity) + parseInt(quantity));
   });
 }
@@ -134,7 +151,6 @@ function updateInventory(item, quantity) {
 
 // Add New Product
 // 5 inqiries
-
 function addNewProduct() {
   connection.query("SELECT item_id FROM products WHERE item_id = (SELECT MAX(item_id) FROM products)", function(err, res) {
     if (err) throw err;
@@ -190,8 +206,12 @@ function getProductStockQuantity(newProductArray) {
 }
 
 function newProductUpdateDisplay(newProductArray) {
-  console.log("\nItem # |                 Product Name                  |   Department    |  Price   | Stock");
-  console.log(String(newProductArray[0]) + "  " + " | " + (String(newProductArray[1]) + "                                             ").slice(0, 45) + " | " + (String(newProductArray[2]) + "               ").slice(0, 15) + " | " + ("$" + String((parseFloat(newProductArray[3])).toFixed(2)) + "        ").slice(0, 8) + " | " + String(newProductArray[4]));
+  var table = new Table({
+    head: ['Item #', 'Product Name', 'Department', 'Price', 'Stock'],
+    colWidths: [8, 45, 16, 12, 8]
+  });
+  table.push(newProductArray);
+  console.log(table.toString());
   console.log("");
   newProductUpdateReview(newProductArray);
 }
@@ -217,7 +237,7 @@ function newProductUpdate(newProductArray) {
   ], function(err, res) {
     if (err) throw err;
     if (res.affectedRows) {
-      console.log("\nNew product added");
+      console.log("\nNew product added\n");
       menu();
     }
   });
