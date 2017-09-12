@@ -93,7 +93,7 @@ function confirmNewDept(newDeptArray) {
     name: 'doNewDept'
   }]).then(function(inquirerResponse) {
     if (inquirerResponse.doNewDept) {
-      updateNewDept(inquirerResponse);
+      updateNewDept(newDeptArray);
     } else {
       console.log('Update Aborted');
       menu();
