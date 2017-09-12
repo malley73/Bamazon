@@ -54,9 +54,64 @@ function displaySalesByDept() {
 
 
 function createNewDept() {
-
+  var newDeptArray = [];
+  inquirer.prompt([{
+    type: 'input',
+    message: 'What is the name of the new department?',
+    name: 'newDepartmentName'
+  }]).then(function(inquirerResponse) {
+    newDeptArray.push((inquirerResponse.newDepartmentName).toUpperCase());
+    getOverHead(newDeptArray);
+  });
 }
 
+function getOverHead(newDeptArray) {
+  inquirer.prompt([{
+    type: 'input',
+    message: 'What is the Over Head Cost for this department?',
+    name: 'newDeptOverHead'
+  }]).then(function(inquirerResponse) {
+    newDeptArray.push(inquirerResponse.newDeptOverHead);
+    displayProposedDepartment(newDeptArray);
+  });
+}
+
+function displayProposedDepartment(newDeptArray) {
+  var table = new Table({
+    head: ['Department Name', 'Over Head Cost'],
+    colWidths: [17, 17]
+  });
+  table.push(newDeptArray);
+  console.log(table.toString());
+  confirmNewDept(newDeptArray);
+}
+
+function confirmNewDept(newDeptArray) {
+  inquirer.prompt([{
+    type: 'confirm',
+    message: "Is this the correct information for the new Department?",
+    name: 'doNewDept'
+  }]).then(function(inquirerResponse) {
+    if (inquirerResponse.doNewDept) {
+      updateNewDept(inquirerResponse);
+    } else {
+      console.log('Update Aborted');
+      menu();
+    }
+  });
+}
+
+function updateNewDept(newDeptArray) {
+  connection.query("INSERT INTO departments (department_name, over_head_cost) VALUES ?", [
+    [newDeptArray]
+  ], function(err, res) {
+    if (err) throw err;
+    if (res.affectedRows) {
+      console.log("\nNew department added\n");
+      menu();
+    }
+  });
+}
 
 function endPoint() {
   connection.destroy();
