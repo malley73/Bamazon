@@ -13,7 +13,7 @@ Default Purchase Process:
  
  
 0 quantity to cancel order
- 
+![zeroqtytocancel]( https://imgur.com/Fqgb5WK)
  
 Quantity Exceeds Stock
 Note: Item # 1004 is no longer available for purchase as this table is populated by only items that have stock_quantity >0 
