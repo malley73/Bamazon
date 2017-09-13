@@ -43,7 +43,7 @@ Add to Inventory
  
  
 Add New Product
-![addnewproduct](https://imgur.com/0eMYA7F.png)
+![addnewproduct](https://imgur.com/2ku76oN.png)
  
  
 ### bamazonSupervisor.js
