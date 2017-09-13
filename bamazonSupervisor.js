@@ -52,7 +52,6 @@ function displaySalesByDept() {
   });
 }
 
-
 function createNewDept() {
   var newDeptArray = [];
   inquirer.prompt([{
@@ -95,7 +94,7 @@ function confirmNewDept(newDeptArray) {
     if (inquirerResponse.doNewDept) {
       updateNewDept(newDeptArray);
     } else {
-      console.log('Update Aborted');
+      console.log('Update Aborted\n');
       menu();
     }
   });

@@ -141,7 +141,6 @@ function updateInventory(item, quantity) {
     { item_id: item }
   ], function(err, res) {
     if (err) throw err;
-    console.log(res.affectedRows);
     if (res.affectedRows > 0) {
       console.log("Inventory Update Complete\n");
     }
